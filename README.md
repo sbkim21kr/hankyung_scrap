@@ -1,13 +1,15 @@
 # Hankyung Article Summarizer
 
 This project processes weekly Hankyung news articles (in Korean) and produces:
-- **CSV files** → structured dataset for future investment analysis
+- **CSV files** → structured datasets for future investment analysis
 - **PDF reports** → clean, reader-friendly summaries for quick review
 
 ## ✨ Features
 - Translates Korean articles into English summaries
 - Auto-adjusts summary length based on article size
+- Prompts for TXT file path (e.g., `raw_txt/2025_week45.txt`)
 - Outputs both CSV (for data/analysis) and PDF (for reading/sharing)
+- Automatically creates `csv_data/` and `pdf_reports/` folders if missing
 - Neat PDF formatting with numbered summaries, headers/footers
 - Skips unavailable summaries (no clutter)
 - Auto-opens the PDF in your default viewer
@@ -22,11 +24,12 @@ Clone the repo and install dependencies:
 ```bash
 git clone https://github.com/yourusername/hankyung-summarizer.git
 cd hankyung-summarizer
-uv add deep-translator reportlab tabulate
+uv add deep-translator reportlab
 ```
 
 ## 🚀 Usage
 1. Save your Hankyung articles in a `.txt` file, separated by `--` lines.
+   - Example: `raw_txt/2025_week45.txt`
 2. Run the script:
 
 ```bash
@@ -34,13 +37,28 @@ uv run python main.py
 ```
 
 3. Enter:
+   - Path to your TXT file (e.g., `raw_txt/2025_week45.txt`)
    - Year (e.g., `2025`)
    - Week number (e.g., `45`)
-   - Path to your `.txt` file
 
 4. Outputs:
-   - `2025_week45_hankyung.csv` → structured dataset
-   - `2025_week45_hankyung.pdf` → formatted report (auto-opens)
+   - `csv_data/2025_week45_hankyung.csv` → structured dataset
+   - `pdf_reports/2025_week45_hankyung.pdf` → formatted report (auto-opens)
+
+## 📂 Folder Structure
+```
+hankyung-summarizer/
+│
+├── main.py
+├── pyproject.toml
+├── uv.lock
+├── README.md
+├── .gitignore
+│
+├── raw_txt/        # raw source files (Samsung Note exports)
+├── pdf_reports/    # generated PDFs for reading
+└── csv_data/       # structured CSVs for analysis
+```
 
 ## 📂 Example Output
 **PDF Table:**
@@ -49,19 +67,13 @@ uv run python main.py
 |-----|-----------------|
 | 1   | Exports in October rose 3.6% year-on-year, driven by semiconductors and ships... |
 | 2   | Nvidia plans to turn Korea into a massive AI factory... |
-| 3   | Data is the key to AI success... |
 
 **CSV File:**
 ```csv
-"Year","Week","English Summary"
-"2025","45","Exports in October rose 3.6% year-on-year..."
-"2025","45","Nvidia plans to turn Korea into a massive AI factory..."
+"No.","English Summary"
+"1","Exports in October rose 3.6% year-on-year..."
+"2","Nvidia plans to turn Korea into a massive AI factory..."
 ```
-
-## 📊 Why Keep CSVs?
-- CSVs are your **data asset** for future investment analysis
-- PDFs are for **reading/sharing**
-- Over time, you’ll build a historical dataset of Hankyung summaries
 
 ## 📝 .gitignore
 Make sure you don’t commit generated files:
@@ -73,6 +85,7 @@ __pycache__/
 *.csv
 *.pdf
 .DS_Store
+Thumbs.db
 ```
 
 ## 📈 Future Ideas
