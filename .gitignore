@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Generated outputs
+*.csv
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
