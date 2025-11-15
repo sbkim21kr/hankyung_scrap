@@ -44,7 +44,7 @@ def open_in_default_app(file_path):
         else:  # Linux/Unix
             subprocess.call(["xdg-open", file_path])
     except Exception as e:
-        print(f"⚠️ Could not open the PDF automatically: {e}")
+        print(f"⚠️ Could not open automatically: {e}")
 
 def header_footer(canvas, doc, title_text):
     canvas.saveState()
@@ -116,20 +116,16 @@ def build_pdf(output_pdf, year, week, rows):
     )
 
 def main():
-    print("📂 Welcome to Hankyung Article Logger")
+    print("📂 Hankyung Article Logger")
 
-    txt_file = input("Please enter the path to your TXT file: ").strip()
+    # Prompt for TXT file path
+    txt_file = input("Enter the path to your TXT file (e.g., raw_txt/2025_week45.txt): ").strip()
     if not os.path.exists(txt_file):
-        print("❌ File not found. Exiting.")
+        print(f"❌ TXT file not found at {txt_file}")
         return
 
-    year = input("Enter the year these articles are from: ").strip()
+    year = input("Enter the year: ").strip()
     week = input("Enter the week number (e.g., 45): ").strip()
-
-    confirm = input(f"Confirm: Year {year}, Week {week}? (y/n): ").strip().lower()
-    if confirm != "y":
-        print("❌ Cancelled by user.")
-        return
 
     with open(txt_file, "r", encoding="utf-8") as f:
         content = f.read()
@@ -137,22 +133,34 @@ def main():
     articles = [a.strip() for a in re.split(r"-{2,}", content) if a.strip()]
     translator = GoogleTranslator(source="ko", target="en")
 
-    output_pdf = os.path.join(
-        os.path.dirname(txt_file),
-        f"{year}_week{week}_hankyung.pdf"
-    )
+    # Ensure output folders exist
+    os.makedirs("csv_data", exist_ok=True)
+    os.makedirs("pdf_reports", exist_ok=True)
+
+    # Output paths
+    output_csv = os.path.join("csv_data", f"{year}_week{week}_hankyung.csv")
+    output_pdf = os.path.join("pdf_reports", f"{year}_week{week}_hankyung.pdf")
 
     rows = []
-    for idx, article in enumerate(articles, start=1):
-        print(f"\nProcessing Article {idx}...")
-        summary = summarize_text(article, translator)
-        if summary:
-            rows.append(summary)
+    with open(output_csv, "w", newline="", encoding="utf-8") as csvfile:
+        import csv
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+        writer.writerow(["No.", "English Summary"])
 
+        for idx, article in enumerate(articles, start=1):
+            print(f"\nProcessing Article {idx}...")
+            summary = summarize_text(article, translator)
+            if summary:
+                writer.writerow([idx, summary])
+                rows.append(summary)
+
+    # Build PDF
     build_pdf(output_pdf, year, week, rows)
+
+    # Auto-open PDF
     open_in_default_app(output_pdf)
 
-    print(f"\n✅ Done! PDF created at: {output_pdf} and opened in your PDF app.")
+    print(f"\n✅ Done! CSV saved to {output_csv}, PDF saved to {output_pdf} and opened.")
 
 if __name__ == "__main__":
     main()
