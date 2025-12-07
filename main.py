@@ -101,24 +101,16 @@ def build_pdf(output_pdf, year, week, rows):
     story.append(Spacer(1, 12))
 
     # Each article
-    for idx, translation in enumerate(rows, start=1):
-        safe_text = clean_text(translation or "")
-        chunks = chunk_text_safe(safe_text, max_chars=800, max_words=120)
-
-        if not chunks:
-            print(f"⚠️ Article {idx} was empty after cleaning/translation — skipped in PDF.")
-            continue
-
-        # Build table rows: first row has number + first chunk, subsequent rows have blank number + chunk
+    for idx, translation_chunks in enumerate(rows, start=1):
         table_rows = []
-        table_rows.append([Paragraph(str(idx), styles["Normal"]),
-                           Paragraph(chunks[0], text_style)])
-        for extra in chunks[1:]:
-            table_rows.append([Paragraph("", styles["Normal"]),
-                               Paragraph(extra, text_style)])
+        for sub_idx, chunk in enumerate(translation_chunks, start=1):
+            safe_text = clean_text(chunk or "")
+            label = f"{idx}-{sub_idx}" if len(translation_chunks) > 1 else str(idx)
+            table_rows.append([Paragraph(label, styles["Normal"]),
+                               Paragraph(safe_text, text_style)])
 
         # Create table for this article
-        article_tbl = Table(table_rows, colWidths=[15 * mm, None])
+        article_tbl = Table(table_rows, colWidths=[20 * mm, None])
         article_tbl.setStyle(TableStyle([
             ("FONT", (0, 0), (-1, -1), "Helvetica", 10),
             ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -126,8 +118,6 @@ def build_pdf(output_pdf, year, week, rows):
             ("ALIGN", (0, 0), (0, -1), "CENTER"),
         ]))
         story.append(article_tbl)
-
-        # Just a small spacer between articles (no page break)
         story.append(Spacer(1, 12))
 
     title_text = f"Hankyung article translations — Year {year}, Week {week}"
@@ -169,12 +159,18 @@ def main():
 
         for idx, article in enumerate(articles, start=1):
             print(f"\nProcessing Article {idx}...")
-            translation = translate_text(article, translator)
-            if translation:
-                writer.writerow([idx, translation])
-                rows.append(translation)
-            else:
-                print(f"⚠️ Article {idx} translation failed or empty — skipped in CSV/PDF.")
+            chunks = chunk_text_safe(article, max_chars=800, max_words=120)
+            translated_chunks = []
+            for sub_idx, chunk in enumerate(chunks, start=1):
+                translation = translate_text(chunk, translator)
+                if translation:
+                    label = f"{idx}-{sub_idx}" if len(chunks) > 1 else str(idx)
+                    writer.writerow([label, translation])
+                    translated_chunks.append(translation)
+                else:
+                    print(f"⚠️ Article {idx}-{sub_idx} translation failed or empty — skipped.")
+            if translated_chunks:
+                rows.append(translated_chunks)
 
     build_pdf(output_pdf, year, week, rows)
     open_in_default_app(output_pdf)
